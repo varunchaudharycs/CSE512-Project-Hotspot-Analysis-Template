@@ -43,7 +43,51 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   val numCells = (maxX - minX + 1)*(maxY - minY + 1)*(maxZ - minZ + 1)
 
   // YOU NEED TO CHANGE THIS PART
+  println("Hot Cell Analysis ---------->")
 
-  return pickupInfo // YOU NEED TO CHANGE THIS PART
+  pickupInfo = pickupInfo.select("x", "y", "z")
+    .where(s"x >= $minX AND y >= $minY AND z >= $minZ AND x <= $maxX and y <= $maxY and z <= $maxZ")
+    .orderBy("z", "y", "x")
+  var pickupsModified = pickupInfo.groupBy("z", "y", "x").count().withColumnRenamed("count", "hotCells").orderBy("z", "y", "x")
+
+  pickupsModified.createOrReplaceTempView("pickupsModified")
+
+  val mean = (pickupsModified.select("hotCells").agg(sum("hotCells")).first().getLong(0).toDouble) / numCells
+
+  val standardDeviation = scala.math.sqrt((pickupsModified.withColumn("hotCellSquare", pow(col("hotCells"), 2))
+    .select("hotCellSquare")
+    .agg(sum("hotCellSquare"))
+    .first()
+    .getDouble(0) / numCells) - scala.math.pow(mean, 2))
+
+  var neighbors = spark.sql("SELECT hotCellTable_1.x AS x, hotCellTable_1.y AS y, hotCellTable_1.z AS z, sum(hotCellTable_2.hotCells) AS noCell"
+    + " FROM pickupsModified AS hotCellTable_1, pickupsModified as hotCellTable_2"
+    + " WHERE (hotCellTable_2.y = hotCellTable_1.y+1 OR hotCellTable_2.y = hotCellTable_1.y OR hotCellTable_2.y = hotCellTable_1.y-1)"
+    + " AND (hotCellTable_2.x = hotCellTable_1.x+1 OR hotCellTable_2.x = hotCellTable_1.x OR hotCellTable_2.x = hotCellTable_1.x-1)"
+    + " AND (hotCellTable_2.z = hotCellTable_1.z+1 OR hotCellTable_2.z = hotCellTable_1.z OR hotCellTable_2.z = hotCellTable_1.z-1)"
+    + " GROUP BY hotCellTable_1.z, hotCellTable_1.y, hotCellTable_1.x"
+    + " ORDER BY hotCellTable_1.z, hotCellTable_1.y, hotCellTable_1.x" )
+
+
+  var numNeighbors = udf((inputX: Int, inputY: Int, inputZ: Int, minX: Int, minY: Int, minZ: Int, maxX: Int, maxY: Int, maxZ: Int) =>
+    HotcellUtils.findHotNeighbors(inputX, inputY, inputZ, minX, minY, minZ, maxX, maxY, maxZ))
+  
+  var hotNeighbor = neighbors
+    .withColumn("hot_neighbor", numNeighbors(lit(minX), lit(minY), lit(minZ), lit(maxX), lit(maxY), lit(maxZ),
+      col("x"), col("y"), col("z")))
+
+  var functionGi = udf((numCells: Int , x: Int, y: Int, z: Int, hot_neighbor: Int, noCell: Int, mean: Double, standardDeviation: Double) =>
+    HotcellUtils.calculateGi(numCells, x, y, z, hot_neighbor, noCell, mean, standardDeviation))
+
+  var Gi = hotNeighbor
+    .withColumn("GetisOrdScore", functionGi(lit(numCells), col("x"), col("y"), col("z"), col("hot_neighbor"), col("noCell"), lit(mean), lit(standardDeviation)))
+    .orderBy(desc("GetisOrdScore"))
+    .limit(50)
+
+  var result = Gi.select(col("x"), col("y"), col("z"))
+
+  println("<---------- Hot Cell Analysis")
+  result.show()
+  return result // YOU NEED TO CHANGE THIS PART
 }
 }

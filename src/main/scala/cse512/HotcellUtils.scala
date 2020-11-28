@@ -48,4 +48,29 @@ object HotcellUtils {
   }
 
   // YOU NEED TO CHANGE THIS PART
+  def findHotNeighbors(minX: Int, minY: Int, minZ: Int,
+                       maxX: Int, maxY: Int, maxZ: Int,
+                       x: Int, y: Int, z: Int): Int =
+  {
+    var boundaries = 0
+
+    if (x == minX || x == maxX) { boundaries += 1 } // X boundary point
+
+    if (y == minY || y == maxY) { boundaries += 1 } // Y boundary point
+
+    if (z == minZ || z == maxZ) { boundaries += 1 } // Z boundary point
+
+    boundaries match {
+      case 1 => 18
+      case 2 => 12
+      case 3 => 8
+      case _ => 27
+    }
+  }
+
+  def calculateGi(numCells: Int, x: Int, y: Int, z: Int,
+                  neighbors: Int, noCell: Int, mean: Double, std: Double): Double =
+  {
+    return (noCell.toDouble - (mean * neighbors.toDouble)) / (std * math.sqrt((( neighbors.toDouble * numCells.toDouble) - (neighbors.toDouble * neighbors.toDouble)) / (numCells.toDouble - 1.0)))
+  }
 }

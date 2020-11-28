@@ -1,4 +1,6 @@
-# CSE512-Project-Hotspot-Analysis-Template
+# RENAME = Group_19_CSE511_Phase2
+
+### cmd = spark-submit target/scala-2.11/CSE512-Hotspot-Analysis-Template-assembly-0.1.0.jar test/output hotzoneanalysis src/resources/point-hotzone.csv src/resources/zone-hotzone.csv hotcellanalysis src/resources/yellow_trip_sample_100000.csv
 
 #### Version history
 v1.2 Update the readme to work with Canvas
