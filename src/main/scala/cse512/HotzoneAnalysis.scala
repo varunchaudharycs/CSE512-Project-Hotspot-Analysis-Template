@@ -1,7 +1,7 @@
 package cse512
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession, functions}
 
 object HotzoneAnalysis {
 
@@ -29,9 +29,12 @@ object HotzoneAnalysis {
     val joinDf = spark.sql("select rectangle._c0 as rectangle, point._c5 as point from rectangle,point where ST_Contains(rectangle._c0,point._c5)")
     joinDf.createOrReplaceTempView("joinResult")
 
-    // YOU NEED TO CHANGE THIS PART
-
-    return joinDf // YOU NEED TO CHANGE THIS PART
+    val finalResultDf = spark.sql("select rectangle, count(point) as numberOfPoints from joinResult group by rectangle order by rectangle").persist()
+    finalResultDf.createOrReplaceTempView("endResult")
+    return finalResultDf.coalesce(1)
+    // return joinDf // YOU NEED TO CHANGE THIS PART
   }
 
 }
+
+
