@@ -88,6 +88,6 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
 
   println("<---------- Hot Cell Analysis")
   result.show()
-  return result // YOU NEED TO CHANGE THIS PART
+  result // YOU NEED TO CHANGE THIS PART
 }
 }
