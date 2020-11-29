@@ -61,16 +61,17 @@ object HotcellUtils {
     if (z == minZ || z == maxZ) { boundaries += 1 } // Z boundary point
 
     boundaries match {
-      case 1 => 18
-      case 2 => 12
-      case 3 => 8
-      case _ => 27
+      case 1 => 17
+      case 2 => 11
+      case 3 => 7
+      case _ => 26
     }
   }
 
   def calculateGi(numCells: Int, x: Int, y: Int, z: Int,
-                  neighbors: Int, noCell: Int, mean: Double, std: Double): Double =
+                  neighbors: Int, sum: Int, mean: Double, std: Double): Double =
   {
-    return (noCell.toDouble - (mean * neighbors.toDouble)) / (std * math.sqrt((( neighbors.toDouble * numCells.toDouble) - (neighbors.toDouble * neighbors.toDouble)) / (numCells.toDouble - 1.0)))
+    val score : Double = (sum.toDouble - (mean * neighbors.toDouble)) / (std * math.sqrt((( neighbors.toDouble * numCells.toDouble) - (neighbors.toDouble * neighbors.toDouble)) / (numCells.toDouble - 1.0)))
+    score
   }
 }

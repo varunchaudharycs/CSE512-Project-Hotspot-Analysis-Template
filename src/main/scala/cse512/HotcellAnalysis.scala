@@ -71,7 +71,7 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
 
   var numNeighbors = udf((inputX: Int, inputY: Int, inputZ: Int, minX: Int, minY: Int, minZ: Int, maxX: Int, maxY: Int, maxZ: Int) =>
     HotcellUtils.findHotNeighbors(inputX, inputY, inputZ, minX, minY, minZ, maxX, maxY, maxZ))
-  
+
   var hotNeighbor = neighbors
     .withColumn("hot_neighbor", numNeighbors(lit(minX), lit(minY), lit(minZ), lit(maxX), lit(maxY), lit(maxZ),
       col("x"), col("y"), col("z")))
