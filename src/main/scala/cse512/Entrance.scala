@@ -14,7 +14,7 @@ object Entrance extends App {
       .builder()
       .appName("CSE512-HotspotAnalysis-19") // YOU NEED TO CHANGE YOUR GROUP NAME
       .config("spark.some.config.option", "some-value")
-      .master("local[*]") // TODO: comment
+      //.master("local[*]") // TODO: comment
       .getOrCreate()
 
     paramsParser(spark, args)
